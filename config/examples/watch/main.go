@@ -112,7 +112,7 @@ func displayConfig(cfg config.Config) {
 		val, _ := cfg.Get(key)
 		fmt.Printf("%s = %s\n", key, val.String())
 	}
-	fmt.Println("=============================\n")
+	fmt.Println("=============================")
 }
 
 func simulateApp(cfg config.Config) {

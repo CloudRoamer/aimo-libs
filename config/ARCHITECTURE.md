@@ -475,7 +475,7 @@ import (
     "os"
     "strings"
 
-    "github.com/your-org/aimo-libs/config"
+    "github.com/CloudRoamer/aimo-libs/config"
 )
 
 const (
@@ -602,7 +602,7 @@ import (
     "sync"
 
     consulapi "github.com/hashicorp/consul/api"
-    "github.com/your-org/aimo-libs/config"
+    "github.com/CloudRoamer/aimo-libs/config"
 )
 
 const (
@@ -717,7 +717,7 @@ import (
     "time"
 
     consulapi "github.com/hashicorp/consul/api"
-    "github.com/your-org/aimo-libs/config"
+    "github.com/CloudRoamer/aimo-libs/config"
 )
 
 type watcher struct {
@@ -817,8 +817,8 @@ import (
     "strings"
     "sync"
 
-    "github.com/your-org/aimo-libs/config"
-    "github.com/your-org/aimo-libs/config/codec"
+    "github.com/CloudRoamer/aimo-libs/config"
+    "github.com/CloudRoamer/aimo-libs/config/codec"
 )
 
 const (
@@ -955,7 +955,7 @@ import (
     "time"
 
     "github.com/fsnotify/fsnotify"
-    "github.com/your-org/aimo-libs/config"
+    "github.com/CloudRoamer/aimo-libs/config"
 )
 
 type watcher struct {
@@ -1045,7 +1045,7 @@ import (
     "fmt"
 
     _ "github.com/lib/pq"
-    "github.com/your-org/aimo-libs/config"
+    "github.com/CloudRoamer/aimo-libs/config"
 )
 
 const (
@@ -1174,7 +1174,7 @@ func (s *Source) Close() error {
 package merge
 
 import (
-    "github.com/your-org/aimo-libs/config"
+    "github.com/CloudRoamer/aimo-libs/config"
 )
 
 // Merger 定义配置合并策略接口
@@ -1550,10 +1550,10 @@ import (
     "context"
     "log"
 
-    "github.com/your-org/aimo-libs/config"
-    "github.com/your-org/aimo-libs/config/source/consul"
-    "github.com/your-org/aimo-libs/config/source/env"
-    "github.com/your-org/aimo-libs/config/source/file"
+    "github.com/CloudRoamer/aimo-libs/config"
+    "github.com/CloudRoamer/aimo-libs/config/source/consul"
+    "github.com/CloudRoamer/aimo-libs/config/source/env"
+    "github.com/CloudRoamer/aimo-libs/config/source/file"
 )
 
 func main() {
@@ -1616,9 +1616,9 @@ import (
     "os/signal"
     "syscall"
 
-    "github.com/your-org/aimo-libs/config"
-    "github.com/your-org/aimo-libs/config/source/consul"
-    "github.com/your-org/aimo-libs/config/source/env"
+    "github.com/CloudRoamer/aimo-libs/config"
+    "github.com/CloudRoamer/aimo-libs/config/source/consul"
+    "github.com/CloudRoamer/aimo-libs/config/source/env"
 )
 
 func main() {
@@ -1684,8 +1684,8 @@ import (
     "context"
     "log"
 
-    "github.com/your-org/aimo-libs/config"
-    "github.com/your-org/aimo-libs/config/source/file"
+    "github.com/CloudRoamer/aimo-libs/config"
+    "github.com/CloudRoamer/aimo-libs/config/source/file"
 )
 
 // DatabaseConfig 数据库配置结构体
@@ -1752,7 +1752,7 @@ import (
     "net/http"
     "time"
 
-    "github.com/your-org/aimo-libs/config"
+    "github.com/CloudRoamer/aimo-libs/config"
 )
 
 // HTTPSource 从 HTTP 端点加载配置
@@ -1939,32 +1939,31 @@ func (e *SourceError) Unwrap() error {
 
 ---
 
-## 12. 实施建议
+## 12. 实施状态
 
-### 12.1 分阶段实施计划
+### 12.1 已完成功能
 
-| 阶段 | 内容 | 预计工时 |
-|------|------|----------|
-| P1 | 核心接口 + 环境变量源 + 文件源 | 3 天 |
-| P2 | Consul 源 + 热更新机制 | 2 天 |
-| P3 | PostgreSQL 源（可选）| 1 天 |
-| P4 | 文档 + 示例 + 测试完善 | 2 天 |
+| 阶段 | 内容 | 状态 |
+|------|------|------|
+| P1 | 核心接口 + 环境变量源 + 文件源 | 已完成 |
+| P2 | Consul 源 + 热更新机制 | 已完成 |
+| P3 | PostgreSQL 源 | 已完成 |
+| P4 | 文档 + 示例 + 测试完善 | 已完成 |
 
 ### 12.2 依赖清单
 
 ```go
 // go.mod
 
-module github.com/your-org/aimo-libs/config
+module github.com/CloudRoamer/aimo-libs/config
 
-go 1.21
+go 1.25
 
 require (
-    github.com/hashicorp/consul/api v1.25.1  // Consul 客户端
-    github.com/fsnotify/fsnotify v1.7.0      // 文件系统监听
-    github.com/mitchellh/mapstructure v1.5.0 // 结构体映射
+    github.com/hashicorp/consul/api v1.33.2  // Consul 客户端
+    github.com/fsnotify/fsnotify v1.9.0      // 文件系统监听
     gopkg.in/yaml.v3 v3.0.1                  // YAML 解析
-    github.com/lib/pq v1.10.9                // PostgreSQL 驱动（可选）
+    github.com/lib/pq v1.10.9                // PostgreSQL 驱动
 )
 ```
 
