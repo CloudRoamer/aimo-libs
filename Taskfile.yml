@@ -22,31 +22,19 @@ tasks:
     cmds:
       - docker compose run --rm builder /bin/bash
 
-  # 主要构建任务 - 默认在容器内执行
+  # 主要构建任务 - 在容器内执行
   build:
     desc: 在构建容器内构建所有 Go 模块
     deps: [docker:build]
     cmds:
       - docker compose run --rm builder sh -c "cd config && go build ./..."
 
-  build:local:
-    desc: 本地直接构建（需本地 Go 环境）
-    dir: config
-    cmds:
-      - go build ./...
-
-  # 主要测试任务 - 默认在容器内执行
+  # 主要测试任务 - 在容器内执行
   test:
     desc: 在构建容器内运行所有测试
     deps: [docker:build]
     cmds:
       - docker compose run --rm builder sh -c "cd config && go test -v ./..."
-
-  test:local:
-    desc: 本地直接测试（需本地 Go 环境）
-    dir: config
-    cmds:
-      - go test -v ./...
 
   # 运行测试（跳过需要外部依赖的测试）
   test:short:
@@ -68,12 +56,6 @@ tasks:
     deps: [docker:build]
     cmds:
       - docker compose run --rm builder sh -c "cd config && golangci-lint run"
-
-  lint:local:
-    desc: 本地直接 lint（需本地 golangci-lint）
-    dir: config
-    cmds:
-      - golangci-lint run
 
   # 代码格式化
   fmt:
