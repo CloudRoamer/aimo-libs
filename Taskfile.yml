@@ -10,39 +10,67 @@ tasks:
     cmds:
       - task --list
 
-  # 构建所有模块
+  # Docker 相关任务
+  docker:build:
+    desc: 构建构建容器镜像
+    cmds:
+      - docker compose build builder
+
+  docker:shell:
+    desc: 进入构建容器的交互式 shell
+    deps: [docker:build]
+    cmds:
+      - docker compose run --rm builder /bin/bash
+
+  # 主要构建任务 - 默认在容器内执行
   build:
-    desc: 构建所有 Go 模块
+    desc: 在构建容器内构建所有 Go 模块
+    deps: [docker:build]
+    cmds:
+      - docker compose run --rm builder sh -c "cd config && go build ./..."
+
+  build:local:
+    desc: 本地直接构建（需本地 Go 环境）
     dir: config
     cmds:
       - go build ./...
 
-  # 运行所有测试
+  # 主要测试任务 - 默认在容器内执行
   test:
-    desc: 运行所有测试
+    desc: 在构建容器内运行所有测试
+    deps: [docker:build]
+    cmds:
+      - docker compose run --rm builder sh -c "cd config && go test -v ./..."
+
+  test:local:
+    desc: 本地直接测试（需本地 Go 环境）
     dir: config
     cmds:
       - go test -v ./...
 
   # 运行测试（跳过需要外部依赖的测试）
   test:short:
-    desc: 运行测试（跳过外部依赖）
-    dir: config
+    desc: 在构建容器内运行测试（跳过外部依赖）
+    deps: [docker:build]
     cmds:
-      - go test -short -v ./...
+      - docker compose run --rm builder sh -c "cd config && go test -short -v ./..."
 
   # 生成测试覆盖率报告
   test:coverage:
-    desc: 生成测试覆盖率报告
-    dir: config
+    desc: 在构建容器内生成测试覆盖率报告
+    deps: [docker:build]
     cmds:
-      - go test -coverprofile=coverage.out ./...
-      - go tool cover -html=coverage.out -o coverage.html
-      - echo "覆盖率报告已生成 config/coverage.html"
+      - docker compose run --rm builder sh -c "cd config && go test -coverprofile=coverage.out ./... && go tool cover -html=coverage.out -o coverage.html && echo '覆盖率报告已生成 config/coverage.html'"
 
   # 代码检查
   lint:
-    desc: 运行 golangci-lint 代码检查
+    desc: 在构建容器内运行 golangci-lint 代码检查
+    deps: [docker:build]
+    cmds:
+      - docker compose run --rm builder sh -c "cd config && golangci-lint run"
+
+  lint:local:
+    desc: 本地直接 lint（需本地 golangci-lint）
     dir: config
     cmds:
       - golangci-lint run
