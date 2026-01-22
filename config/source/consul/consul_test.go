@@ -45,9 +45,13 @@ func TestNew(t *testing.T) {
 
 // TestSource_Name 测试配置源名称
 func TestSource_Name(t *testing.T) {
-	s := &Source{}
-	if got := s.Name(); got != "consul" {
-		t.Errorf("Name() = %v, want consul", got)
+	s := &Source{
+		addr:   "localhost:8500",
+		prefix: "config",
+	}
+	want := "consul:localhost:8500/config"
+	if got := s.Name(); got != want {
+		t.Errorf("Name() = %v, want %v", got, want)
 	}
 }
 

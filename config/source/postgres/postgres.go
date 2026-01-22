@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 
 	"github.com/CloudRoamer/aimo-libs/config"
 )
@@ -64,7 +64,9 @@ func (s *Source) Priority() int {
 func (s *Source) Load(ctx context.Context) (map[string]config.Value, error) {
 	query := fmt.Sprintf(
 		"SELECT %s, %s FROM %s",
-		s.keyCol, s.valueCol, s.table,
+		pq.QuoteIdentifier(s.keyCol),
+		pq.QuoteIdentifier(s.valueCol),
+		pq.QuoteIdentifier(s.table),
 	)
 
 	rows, err := s.db.QueryContext(ctx, query)

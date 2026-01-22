@@ -18,6 +18,7 @@ type Manager struct {
 	onChange []ChangeCallback
 	ctx      context.Context
 	cancel   context.CancelFunc
+	wg       sync.WaitGroup
 }
 
 // ChangeCallback 配置变更回调函数
@@ -104,7 +105,11 @@ func (m *Manager) Watch() error {
 		m.watchers = append(m.watchers, watcher)
 
 		// 启动 goroutine 处理事件
-		go m.handleEvents(source.Name(), eventCh)
+		m.wg.Add(1)
+		go func(sourceName string, eventCh <-chan Event) {
+			defer m.wg.Done()
+			m.handleEvents(sourceName, eventCh)
+		}(source.Name(), eventCh)
 	}
 
 	return nil
@@ -178,12 +183,16 @@ func (m *Manager) Config() Config {
 func (m *Manager) Close() error {
 	m.cancel()
 
+	// 停止所有 watchers
 	var errs []error
 	for _, w := range m.watchers {
 		if err := w.Stop(); err != nil {
 			errs = append(errs, err)
 		}
 	}
+
+	// 等待所有 goroutine 退出
+	m.wg.Wait()
 
 	if len(errs) > 0 {
 		return fmt.Errorf("errors while closing watchers: %v", errs)

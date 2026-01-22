@@ -19,6 +19,7 @@ const (
 // Source Consul KV 配置源
 type Source struct {
 	client    *consulapi.Client
+	addr      string
 	prefix    string
 	priority  int
 	separator string
@@ -45,6 +46,7 @@ func New(address string, opts ...Option) (*Source, error) {
 
 	s := &Source{
 		client:    client,
+		addr:      address,
 		prefix:    DefaultPrefix,
 		priority:  DefaultPriority,
 		separator: "/",
@@ -58,7 +60,7 @@ func New(address string, opts ...Option) (*Source, error) {
 }
 
 func (s *Source) Name() string {
-	return "consul"
+	return fmt.Sprintf("consul:%s/%s", s.addr, s.prefix)
 }
 
 func (s *Source) Priority() int {
@@ -68,7 +70,10 @@ func (s *Source) Priority() int {
 func (s *Source) Load(ctx context.Context) (map[string]config.Value, error) {
 	kv := s.client.KV()
 
-	pairs, _, err := kv.List(s.prefix, nil)
+	opts := &consulapi.QueryOptions{}
+	opts = opts.WithContext(ctx)
+
+	pairs, _, err := kv.List(s.prefix, opts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list keys from consul: %w", err)
 	}

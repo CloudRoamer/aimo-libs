@@ -83,6 +83,12 @@ func (s *Source) Priority() int {
 }
 
 func (s *Source) Load(ctx context.Context) (map[string]config.Value, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
+
 	data, err := os.ReadFile(s.path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file: %w", err)
@@ -125,7 +131,13 @@ func flatten(prefix string, data map[string]any, result map[string]config.Value)
 	}
 }
 
-// Watch 返回文件监听器（本阶段暂不实现）
+// Watch 返回文件监听器
 func (s *Source) Watch() config.Watcher {
-	return nil
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.watcher == nil {
+		s.watcher = newWatcher(s.path)
+	}
+	return s.watcher
 }
