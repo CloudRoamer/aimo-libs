@@ -1,0 +1,111 @@
+version: '3'
+
+vars:
+  GO_VERSION: '1.25.5'
+
+tasks:
+  # 默认任务 - 显示可用命令
+  default:
+    desc: 显示可用的任务列表
+    cmds:
+      - task --list
+
+  # 构建所有模块
+  build:
+    desc: 构建所有 Go 模块
+    dir: config
+    cmds:
+      - go build ./...
+
+  # 运行所有测试
+  test:
+    desc: 运行所有测试
+    dir: config
+    cmds:
+      - go test -v ./...
+
+  # 运行测试（跳过需要外部依赖的测试）
+  test:short:
+    desc: 运行测试（跳过外部依赖）
+    dir: config
+    cmds:
+      - go test -short -v ./...
+
+  # 生成测试覆盖率报告
+  test:coverage:
+    desc: 生成测试覆盖率报告
+    dir: config
+    cmds:
+      - go test -coverprofile=coverage.out ./...
+      - go tool cover -html=coverage.out -o coverage.html
+      - echo "覆盖率报告已生成 config/coverage.html"
+
+  # 代码检查
+  lint:
+    desc: 运行 golangci-lint 代码检查
+    dir: config
+    cmds:
+      - golangci-lint run
+
+  # 代码格式化
+  fmt:
+    desc: 格式化代码
+    dir: config
+    cmds:
+      - gofmt -s -w .
+      - echo "代码格式化完成"
+
+  # 检查代码格式
+  fmt:check:
+    desc: 检查代码格式是否符合规范
+    dir: config
+    cmds:
+      - test -z "$(gofmt -l .)" || (echo "以下文件需要格式化" && gofmt -l . && exit 1)
+
+  # 清理构建产物
+  clean:
+    desc: 清理构建产物和临时文件
+    dir: config
+    cmds:
+      - rm -f coverage.out coverage.html
+      - rm -f examples/watch/watch
+      - fd -t f '\.test$' -x rm
+      - echo "清理完成"
+
+  # 整理依赖
+  mod:tidy:
+    desc: 整理 Go 模块依赖
+    dir: config
+    cmds:
+      - go mod tidy
+      - echo "依赖整理完成"
+
+  # 下载依赖
+  mod:download:
+    desc: 下载 Go 模块依赖
+    dir: config
+    cmds:
+      - go mod download
+
+  # 验证依赖
+  mod:verify:
+    desc: 验证 Go 模块依赖
+    dir: config
+    cmds:
+      - go mod verify
+
+  # CI 流程 - 格式检查 + 代码检查 + 测试
+  ci:
+    desc: CI 流程（格式检查、代码检查、测试）
+    cmds:
+      - task: fmt:check
+      - task: lint
+      - task: test
+
+  # 完整检查 - 包含覆盖率
+  ci:full:
+    desc: 完整 CI 流程（包含覆盖率报告）
+    cmds:
+      - task: fmt:check
+      - task: lint
+      - task: test:coverage

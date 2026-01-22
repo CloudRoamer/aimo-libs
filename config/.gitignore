@@ -1,1 +1,15 @@
+# 示例程序构建产物
 examples/watch/watch
+
+# 测试覆盖率文件
+coverage.out
+coverage.html
+
+# 测试二进制文件
+*.test
+
+# 临时文件
+*.tmp
+*.swp
+*.swo
+*~
