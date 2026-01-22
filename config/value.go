@@ -10,7 +10,7 @@ import (
 
 // Value 封装配置值，提供类型转换方法
 type Value struct {
-	raw interface{} // 原始值
+	raw any // 原始值
 }
 
 // NewValue 从字符串创建 Value
@@ -19,12 +19,12 @@ func NewValue(s string) Value {
 }
 
 // NewValueFromInterface 从任意类型创建 Value
-func NewValueFromInterface(v interface{}) Value {
+func NewValueFromInterface(v any) Value {
 	return Value{raw: v}
 }
 
 // Raw 返回原始值
-func (v Value) Raw() interface{} {
+func (v Value) Raw() any {
 	return v.raw
 }
 
@@ -166,7 +166,7 @@ func (v Value) StringSlice(defaultVal []string) []string {
 	switch val := v.raw.(type) {
 	case []string:
 		return val
-	case []interface{}:
+	case []any:
 		result := make([]string, 0, len(val))
 		for _, item := range val {
 			result = append(result, fmt.Sprintf("%v", item))
@@ -204,7 +204,7 @@ func (v Value) StringMap(defaultVal map[string]string) map[string]string {
 	switch val := v.raw.(type) {
 	case map[string]string:
 		return val
-	case map[string]interface{}:
+	case map[string]any:
 		result := make(map[string]string, len(val))
 		for k, v := range val {
 			result[k] = fmt.Sprintf("%v", v)

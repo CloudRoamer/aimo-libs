@@ -89,7 +89,7 @@ func (s *Source) Load(ctx context.Context) (map[string]config.Value, error) {
 	}
 
 	// 解码为 map
-	var raw map[string]interface{}
+	var raw map[string]any
 	if err := s.codec.Decode(data, &raw); err != nil {
 		return nil, fmt.Errorf("failed to decode config: %w", err)
 	}
@@ -102,7 +102,7 @@ func (s *Source) Load(ctx context.Context) (map[string]config.Value, error) {
 }
 
 // flatten 将嵌套 map 扁平化为点分隔的 key
-func flatten(prefix string, data map[string]interface{}, result map[string]config.Value) {
+func flatten(prefix string, data map[string]any, result map[string]config.Value) {
 	for k, v := range data {
 		key := k
 		if prefix != "" {
@@ -110,11 +110,11 @@ func flatten(prefix string, data map[string]interface{}, result map[string]confi
 		}
 
 		switch val := v.(type) {
-		case map[string]interface{}:
+		case map[string]any:
 			flatten(key, val, result)
-		case map[interface{}]interface{}:
+		case map[any]any:
 			// YAML 可能返回这种类型
-			converted := make(map[string]interface{})
+			converted := make(map[string]any)
 			for mk, mv := range val {
 				converted[fmt.Sprintf("%v", mk)] = mv
 			}

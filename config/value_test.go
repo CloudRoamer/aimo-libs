@@ -8,7 +8,7 @@ import (
 func TestValue_String(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    interface{}
+		input    any
 		expected string
 	}{
 		{"string", "hello", "hello"},
@@ -31,7 +31,7 @@ func TestValue_String(t *testing.T) {
 func TestValue_Int(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    interface{}
+		input    any
 		expected int
 	}{
 		{"int", 42, 42},
@@ -54,7 +54,7 @@ func TestValue_Int(t *testing.T) {
 func TestValue_Bool(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    interface{}
+		input    any
 		expected bool
 	}{
 		{"bool_true", true, true},
@@ -78,7 +78,7 @@ func TestValue_Bool(t *testing.T) {
 func TestValue_Duration(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    interface{}
+		input    any
 		expected time.Duration
 	}{
 		{"duration", time.Second * 30, 30 * time.Second},
@@ -99,11 +99,11 @@ func TestValue_Duration(t *testing.T) {
 func TestValue_StringSlice(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    interface{}
+		input    any
 		expected []string
 	}{
 		{"string_slice", []string{"a", "b", "c"}, []string{"a", "b", "c"}},
-		{"interface_slice", []interface{}{"x", "y"}, []string{"x", "y"}},
+		{"interface_slice", []any{"x", "y"}, []string{"x", "y"}},
 		{"json_string", `["foo","bar"]`, []string{"foo", "bar"}},
 		{"comma_separated", "one,two,three", []string{"one", "two", "three"}},
 	}
@@ -128,7 +128,7 @@ func TestValue_StringSlice(t *testing.T) {
 func TestValue_StringMap(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    interface{}
+		input    any
 		expected map[string]string
 	}{
 		{
@@ -138,7 +138,7 @@ func TestValue_StringMap(t *testing.T) {
 		},
 		{
 			"interface_map",
-			map[string]interface{}{"foo": "bar", "count": 42},
+			map[string]any{"foo": "bar", "count": 42},
 			map[string]string{"foo": "bar", "count": "42"},
 		},
 		{

@@ -9,10 +9,10 @@ var (
 
 type yamlCodec struct{}
 
-func (c *yamlCodec) Encode(v interface{}) ([]byte, error) {
+func (c *yamlCodec) Encode(v any) ([]byte, error) {
 	return yaml.Marshal(v)
 }
 
-func (c *yamlCodec) Decode(data []byte, v interface{}) error {
+func (c *yamlCodec) Decode(data []byte, v any) error {
 	return yaml.Unmarshal(data, v)
 }

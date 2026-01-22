@@ -9,10 +9,10 @@ var (
 
 type jsonCodec struct{}
 
-func (c *jsonCodec) Encode(v interface{}) ([]byte, error) {
+func (c *jsonCodec) Encode(v any) ([]byte, error) {
 	return json.Marshal(v)
 }
 
-func (c *jsonCodec) Decode(data []byte, v interface{}) error {
+func (c *jsonCodec) Decode(data []byte, v any) error {
 	return json.Unmarshal(data, v)
 }
