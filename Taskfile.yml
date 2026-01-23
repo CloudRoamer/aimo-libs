@@ -159,6 +159,12 @@ tasks:
       - task: build:plugin
       - go run main.go
 
+  example:run:
+    desc: 运行示例（示例名通过 EXAMPLE 指定）
+    cmds:
+      - test -n "{{.EXAMPLE}}" || (echo "请设置 EXAMPLE 变量，例如：task example:run EXAMPLE=basic" && exit 1)
+      - cd config/examples/{{.EXAMPLE}} && go run main.go
+
   # 清理 Plugin 构建产物
   clean:plugin:
     desc: 清理 Plugin 构建产物
