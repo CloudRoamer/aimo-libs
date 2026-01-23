@@ -119,3 +119,42 @@ tasks:
       - task: fmt:check
       - task: lint
       - task: test:coverage
+
+  # 构建 Plugin（当前平台，自动检测架构）
+  build:plugin:
+    desc: 构建 Plugin（当前平台）
+    cmds:
+      - mkdir -p dist
+      - cd config && CGO_ENABLED=1 go build -buildmode=plugin -o ../dist/config.so ./plugin
+      - echo "Plugin 已构建 dist/config.so（架构：$(go env GOARCH)）"
+
+  # 构建 Linux Plugin（容器内构建）
+  build:plugin:linux:
+    desc: 构建 Linux Plugin（容器内构建）
+    cmds:
+      - mkdir -p dist/linux
+      - docker compose run --rm builder sh -c "cd config && CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -buildmode=plugin -o ../dist/linux/config.so ./plugin"
+      - echo "Linux Plugin 已构建 dist/linux/config.so"
+
+  # 构建 macOS Plugin（需在 macOS 上执行，使用当前架构）
+  build:plugin:darwin:
+    desc: 构建 macOS Plugin（需在 macOS 上执行）
+    cmds:
+      - mkdir -p dist/darwin
+      - cd config && CGO_ENABLED=1 GOOS=darwin go build -buildmode=plugin -o ../dist/darwin/config.so ./plugin
+      - echo "macOS Plugin 已构建 dist/darwin/config.so（架构：$(go env GOARCH)）"
+
+  # 运行 Plugin 示例
+  example:plugin:
+    desc: 运行 Plugin 示例
+    dir: config/examples/plugin
+    cmds:
+      - task: build:plugin
+      - go run main.go
+
+  # 清理 Plugin 构建产物
+  clean:plugin:
+    desc: 清理 Plugin 构建产物
+    cmds:
+      - rm -rf dist/
+      - echo "Plugin 构建产物已清理"
