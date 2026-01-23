@@ -1,0 +1,19 @@
+# aimo-libs 开发环境
+# 提供一致的构建和测试环境
+
+services:
+  builder:
+    build:
+      context: .
+      dockerfile: build/Dockerfile
+    image: aimo-libs-builder:latest
+    container_name: aimo-libs-builder
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    environment:
+      - CGO_ENABLED=0
+      - GOOS=linux
+      - GOARCH=amd64
+      - GOPROXY=https://goproxy.cn,direct
+    command: ["task", "--list"]
