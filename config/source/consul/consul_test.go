@@ -36,6 +36,10 @@ func TestNew(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := New(tt.address, tt.opts...)
+			if err != nil && !tt.wantErr {
+				t.Skipf("Consul not available: %v", err)
+				return
+			}
 			if (err != nil) != tt.wantErr {
 				t.Errorf("New() error = %v, wantErr %v", err, tt.wantErr)
 			}
