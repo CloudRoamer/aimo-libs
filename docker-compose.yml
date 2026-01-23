@@ -6,8 +6,8 @@ services:
     build:
       context: .
       dockerfile: build/Dockerfile
-    image: aimo-libs-builder:latest
-    container_name: aimo-libs-builder
+    image: aimo-golang-builder:latest
+    container_name: aimo-golang-builder
     volumes:
       - .:/workspace
     working_dir: /workspace
