@@ -1,0 +1,160 @@
+version: '3'
+
+vars:
+  GO_VERSION: '1.25.5'
+
+tasks:
+  # 默认任务 - 显示可用命令
+  default:
+    desc: 显示可用的任务列表
+    cmds:
+      - task --list
+
+  # Docker 相关任务
+  docker:build:
+    desc: 构建构建容器镜像
+    cmds:
+      - docker compose build builder
+
+  docker:shell:
+    desc: 进入构建容器的交互式 shell
+    deps: [docker:build]
+    cmds:
+      - docker compose run --rm builder /bin/bash
+
+  # 主要构建任务 - 在容器内执行
+  build:
+    desc: 在构建容器内构建所有 Go 模块
+    deps: [docker:build]
+    cmds:
+      - docker compose run --rm builder sh -c "cd config && go build ./..."
+
+  # 主要测试任务 - 在容器内执行
+  test:
+    desc: 在构建容器内运行所有测试
+    deps: [docker:build]
+    cmds:
+      - docker compose run --rm builder sh -c "cd config && go test -v ./..."
+
+  # 运行测试（跳过需要外部依赖的测试）
+  test:short:
+    desc: 在构建容器内运行测试（跳过外部依赖）
+    deps: [docker:build]
+    cmds:
+      - docker compose run --rm builder sh -c "cd config && go test -short -v ./..."
+
+  # 生成测试覆盖率报告
+  test:coverage:
+    desc: 在构建容器内生成测试覆盖率报告
+    deps: [docker:build]
+    cmds:
+      - docker compose run --rm builder sh -c "cd config && go test -coverprofile=coverage.out ./... && go tool cover -html=coverage.out -o coverage.html && echo '覆盖率报告已生成 config/coverage.html'"
+
+  # 代码检查
+  lint:
+    desc: 在构建容器内运行 golangci-lint 代码检查
+    deps: [docker:build]
+    cmds:
+      - docker compose run --rm builder sh -c "cd config && golangci-lint run"
+
+  # 代码格式化
+  fmt:
+    desc: 格式化代码
+    dir: config
+    cmds:
+      - gofmt -s -w .
+      - echo "代码格式化完成"
+
+  # 检查代码格式
+  fmt:check:
+    desc: 检查代码格式是否符合规范
+    dir: config
+    cmds:
+      - test -z "$(gofmt -l .)" || (echo "以下文件需要格式化" && gofmt -l . && exit 1)
+
+  # 清理构建产物
+  clean:
+    desc: 清理构建产物和临时文件
+    dir: config
+    cmds:
+      - rm -f coverage.out coverage.html
+      - rm -f examples/watch/watch
+      - fd -t f '\.test$' -x rm
+      - echo "清理完成"
+
+  # 整理依赖
+  mod:tidy:
+    desc: 整理 Go 模块依赖
+    dir: config
+    cmds:
+      - go mod tidy
+      - echo "依赖整理完成"
+
+  # 下载依赖
+  mod:download:
+    desc: 下载 Go 模块依赖
+    dir: config
+    cmds:
+      - go mod download
+
+  # 验证依赖
+  mod:verify:
+    desc: 验证 Go 模块依赖
+    dir: config
+    cmds:
+      - go mod verify
+
+  # CI 流程 - 格式检查 + 代码检查 + 测试
+  ci:
+    desc: CI 流程（格式检查、代码检查、测试）
+    cmds:
+      - task: fmt:check
+      - task: lint
+      - task: test
+
+  # 完整检查 - 包含覆盖率
+  ci:full:
+    desc: 完整 CI 流程（包含覆盖率报告）
+    cmds:
+      - task: fmt:check
+      - task: lint
+      - task: test:coverage
+
+  # 构建 Plugin（当前平台，自动检测架构）
+  build:plugin:
+    desc: 构建 Plugin（当前平台）
+    cmds:
+      - mkdir -p dist
+      - cd config && CGO_ENABLED=1 go build -buildmode=plugin -o ../dist/config.so ./plugin
+      - echo "Plugin 已构建 dist/config.so（架构：$(go env GOARCH)）"
+
+  # 构建 Linux Plugin（容器内构建）
+  build:plugin:linux:
+    desc: 构建 Linux Plugin（容器内构建）
+    cmds:
+      - mkdir -p dist/linux
+      - docker compose run --rm builder sh -c "cd config && CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -buildmode=plugin -o ../dist/linux/config.so ./plugin"
+      - echo "Linux Plugin 已构建 dist/linux/config.so"
+
+  # 构建 macOS Plugin（需在 macOS 上执行，使用当前架构）
+  build:plugin:darwin:
+    desc: 构建 macOS Plugin（需在 macOS 上执行）
+    cmds:
+      - mkdir -p dist/darwin
+      - cd config && CGO_ENABLED=1 GOOS=darwin go build -buildmode=plugin -o ../dist/darwin/config.so ./plugin
+      - echo "macOS Plugin 已构建 dist/darwin/config.so（架构：$(go env GOARCH)）"
+
+  # 运行 Plugin 示例
+  example:plugin:
+    desc: 运行 Plugin 示例
+    dir: config/examples/plugin
+    cmds:
+      - task: build:plugin
+      - go run main.go
+
+  # 清理 Plugin 构建产物
+  clean:plugin:
+    desc: 清理 Plugin 构建产物
+    cmds:
+      - rm -rf dist/
+      - echo "Plugin 构建产物已清理"
