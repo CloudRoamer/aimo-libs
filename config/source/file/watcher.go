@@ -2,6 +2,7 @@ package file
 
 import (
 	"context"
+	"path/filepath"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -17,6 +18,10 @@ type watcher struct {
 }
 
 func newWatcher(path string) *watcher {
+	if absPath, err := filepath.Abs(path); err == nil {
+		path = absPath
+	}
+
 	return &watcher{
 		path:   path,
 		stopCh: make(chan struct{}),
@@ -29,7 +34,8 @@ func (w *watcher) Start(ctx context.Context) (<-chan config.Event, error) {
 		return nil, err
 	}
 
-	if err := fsWatcher.Add(w.path); err != nil {
+	watchDir := filepath.Dir(w.path)
+	if err := fsWatcher.Add(watchDir); err != nil {
 		fsWatcher.Close()
 		return nil, err
 	}
@@ -56,8 +62,11 @@ func (w *watcher) watch(ctx context.Context, fsWatcher *fsnotify.Watcher) {
 				return
 			}
 
-			// 只关注写入和创建事件
-			if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Create == fsnotify.Create {
+			if filepath.Clean(event.Name) != w.path {
+				continue
+			}
+
+			if event.Op&(fsnotify.Write|fsnotify.Create|fsnotify.Rename|fsnotify.Remove|fsnotify.Chmod) != 0 {
 				w.eventCh <- config.Event{
 					Type:      config.EventTypeUpdate,
 					Source:    "file:" + w.path,

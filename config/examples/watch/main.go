@@ -75,6 +75,10 @@ func main() {
 		if len(event.Keys) > 0 {
 			log.Printf("变更的配置项: %v", event.Keys)
 		}
+
+		if newCfg != nil {
+			displayConfig(newCfg)
+		}
 	})
 
 	// 加载初始配置
@@ -85,8 +89,7 @@ func main() {
 	log.Println("初始配置加载成功")
 
 	// 输出当前配置
-	cfg := mgr.Config()
-	displayConfig(cfg)
+	displayConfig(mgr.Config())
 
 	// 启动配置监听
 	if err := mgr.Watch(); err != nil {
@@ -95,7 +98,7 @@ func main() {
 	log.Println("配置监听已启动，等待变更...")
 
 	// 模拟应用运行
-	go simulateApp(cfg)
+	go simulateApp(mgr)
 
 	// 等待退出信号
 	quit := make(chan os.Signal, 1)
@@ -115,11 +118,12 @@ func displayConfig(cfg config.Config) {
 	fmt.Println("=============================")
 }
 
-func simulateApp(cfg config.Config) {
+func simulateApp(mgr *config.Manager) {
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
 
 	for range ticker.C {
+		cfg := mgr.Config()
 		dbHost := cfg.GetString("database.host", "localhost")
 		dbPort := cfg.GetInt("database.port", 5432)
 		log.Printf("应用运行中... 当前数据库: %s:%d", dbHost, dbPort)
