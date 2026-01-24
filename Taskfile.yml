@@ -136,12 +136,17 @@ tasks:
       - echo "WASM 已构建 dist/config.wasm"
 
   example:run:
-    desc: 运行示例（支持 json 或 yaml）
+    desc: 运行示例（支持 json、yaml 或 consul）
     cmds:
       - test -n "{{.EXAMPLE}}" || (echo "请设置 EXAMPLE 变量，例如：task example:run EXAMPLE=yaml" && exit 1)
-      - test "{{.EXAMPLE}}" = "yaml" -o "{{.EXAMPLE}}" = "json" || (echo "仅支持 EXAMPLE=yaml 或 EXAMPLE=json" && exit 1)
-      - task: build:wasm
-      - cd config/examples/{{.EXAMPLE}} && go run main.go
+      - test "{{.EXAMPLE}}" = "yaml" -o "{{.EXAMPLE}}" = "json" -o "{{.EXAMPLE}}" = "consul" || (echo "仅支持 EXAMPLE=yaml、EXAMPLE=json 或 EXAMPLE=consul" && exit 1)
+      - |
+        if [ "{{.EXAMPLE}}" = "consul" ]; then
+          cd config/examples/consul && go run main.go
+        else
+          task build:wasm
+          cd config/examples/{{.EXAMPLE}} && go run main.go
+        fi
 
   # 清理 WASM 构建产物
   clean:wasm:

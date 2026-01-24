@@ -2,7 +2,8 @@
 
 通用的统一配置管理 SDK，支持多配置源、优先级合并和热更新。
 
-当前仅支持以 WASM 形式使用，示例位于 `config/examples/json` 与 `config/examples/yaml` 。
+当前示例默认以 WASM 形式使用，WASM 示例位于 `config/examples/json` 与 `config/examples/yaml` 。
+Consul 示例为本地 Go 方式运行，位于 `config/examples/consul` 。
 
 ## 特性
 
@@ -28,6 +29,10 @@ task build:wasm
 
 ```bash
 task example:run EXAMPLE=yaml
+```
+
+```bash
+task example:run EXAMPLE=consul
 ```
 
 ### 配置文件示例
@@ -422,6 +427,7 @@ type Watcher interface {
 ## 示例代码
 
 WASM 示例请参考 `config/examples/json` 与 `config/examples/yaml` 。
+Consul 示例请参考 `config/examples/consul` 。
 
 ---
 
