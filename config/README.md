@@ -2,6 +2,8 @@
 
 通用的统一配置管理 SDK，支持多配置源、优先级合并和热更新。
 
+当前仅支持以 Go Plugin 形式使用，示例位于 `config/examples/json` 与 `config/examples/yaml` 。
+
 ## 特性
 
 - **多源支持**：环境变量、配置文件（JSON/YAML）、Consul KV、PostgreSQL
@@ -10,53 +12,26 @@
 - **热更新**：Watch 机制支持配置动态刷新
 - **易扩展**：清晰的接口设计，易于添加新的配置源
 
-## 安装
+## 使用方式
 
-```bash
-go get github.com/CloudRoamer/aimo-libs/config
-```
+通过本仓库构建 Plugin 后在应用中加载使用。
 
 ## 快速开始
 
-### 基础使用
+### Plugin 构建
 
-```go
-package main
+```bash
+# macOS
+task build:plugin:darwin
 
-import (
-    "context"
-    "log"
+# Linux
+task build:plugin:linux
+```
 
-    "github.com/CloudRoamer/aimo-libs/config"
-    "github.com/CloudRoamer/aimo-libs/config/source/env"
-    "github.com/CloudRoamer/aimo-libs/config/source/file"
-)
+### 运行示例
 
-func main() {
-    // 创建配置管理器
-    mgr := config.NewManager()
-
-    // 添加配置源
-    fileSource, _ := file.New("config.yaml")
-    envSource := env.New(env.WithPrefix("APP_"))
-
-    mgr.AddSource(fileSource, envSource)
-
-    // 加载配置
-    ctx := context.Background()
-    if err := mgr.Load(ctx); err != nil {
-        log.Fatal(err)
-    }
-
-    // 获取配置
-    cfg := mgr.Config()
-    dbHost := cfg.GetString("database.host", "localhost")
-    dbPort := cfg.GetInt("database.port", 5432)
-
-    log.Printf("Database: %s:%d", dbHost, dbPort)
-
-    defer mgr.Close()
-}
+```bash
+task example:run EXAMPLE=yaml
 ```
 
 ### 配置文件示例
@@ -450,21 +425,7 @@ type Watcher interface {
 
 ## 示例代码
 
-### 基础示例
-
-```bash
-cd examples/basic
-go run main.go
-```
-
-### 热更新示例
-
-```bash
-cd examples/watch
-go run main.go
-```
-
-更多示例请参考 [examples/](./examples/) 目录。
+Plugin 示例请参考 `config/examples/json` 与 `config/examples/yaml` 。
 
 ---
 

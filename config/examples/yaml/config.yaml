@@ -11,12 +11,12 @@ server:
 database:
   host: localhost
   port: 5432
-  name: testdb
   user: testuser
   password: testpass
+  name: testdb
   pool:
-    max_size: 10
     min_size: 2
+    max_size: 10
 
 debug: false
 

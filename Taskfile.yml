@@ -151,18 +151,12 @@ tasks:
       - cd config && CGO_ENABLED=1 GOOS=darwin go build -buildmode=plugin -o ../dist/darwin/config.so ./plugin
       - echo "macOS Plugin 已构建 dist/darwin/config.so（架构：$(go env GOARCH)）"
 
-  # 运行 Plugin 示例
-  example:plugin:
-    desc: 运行 Plugin 示例
-    dir: config/examples/plugin
-    cmds:
-      - task: build:plugin
-      - go run main.go
-
   example:run:
-    desc: 运行示例（示例名通过 EXAMPLE 指定）
+    desc: 运行示例（支持 json 或 yaml）
     cmds:
-      - test -n "{{.EXAMPLE}}" || (echo "请设置 EXAMPLE 变量，例如：task example:run EXAMPLE=basic" && exit 1)
+      - test -n "{{.EXAMPLE}}" || (echo "请设置 EXAMPLE 变量，例如：task example:run EXAMPLE=yaml" && exit 1)
+      - test "{{.EXAMPLE}}" = "yaml" -o "{{.EXAMPLE}}" = "json" || (echo "仅支持 EXAMPLE=yaml 或 EXAMPLE=json" && exit 1)
+      - task: build:plugin
       - cd config/examples/{{.EXAMPLE}} && go run main.go
 
   # 清理 Plugin 构建产物
