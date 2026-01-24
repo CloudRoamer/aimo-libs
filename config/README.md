@@ -2,7 +2,7 @@
 
 通用的统一配置管理 SDK，支持多配置源、优先级合并和热更新。
 
-当前仅支持以 Go Plugin 形式使用，示例位于 `config/examples/json` 与 `config/examples/yaml` 。
+当前仅支持以 WASM 形式使用，示例位于 `config/examples/json` 与 `config/examples/yaml` 。
 
 ## 特性
 
@@ -14,18 +14,14 @@
 
 ## 使用方式
 
-通过本仓库构建 Plugin 后在应用中加载使用。
+通过本仓库构建 WASM 模块后在应用中加载使用。
 
 ## 快速开始
 
-### Plugin 构建
+### WASM 构建
 
 ```bash
-# macOS
-task build:plugin:darwin
-
-# Linux
-task build:plugin:linux
+task build:wasm
 ```
 
 ### 运行示例
@@ -425,7 +421,7 @@ type Watcher interface {
 
 ## 示例代码
 
-Plugin 示例请参考 `config/examples/json` 与 `config/examples/yaml` 。
+WASM 示例请参考 `config/examples/json` 与 `config/examples/yaml` 。
 
 ---
 

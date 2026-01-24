@@ -127,41 +127,25 @@ tasks:
       - task: lint
       - task: test:coverage
 
-  # 构建 Plugin（当前平台，自动检测架构）
-  build:plugin:
-    desc: 构建 Plugin（当前平台）
+  # 构建 WASM（WASI）模块
+  build:wasm:
+    desc: 构建 WASM 模块（WASI）
     cmds:
       - mkdir -p dist
-      - cd config && CGO_ENABLED=1 go build -buildmode=plugin -o ../dist/config.so ./plugin
-      - echo "Plugin 已构建 dist/config.so（架构：$(go env GOARCH)）"
-
-  # 构建 Linux Plugin（容器内构建）
-  build:plugin:linux:
-    desc: 构建 Linux Plugin（容器内构建）
-    cmds:
-      - mkdir -p dist/linux
-      - docker compose run --rm builder sh -c "cd config && CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -buildmode=plugin -o ../dist/linux/config.so ./plugin"
-      - echo "Linux Plugin 已构建 dist/linux/config.so"
-
-  # 构建 macOS Plugin（需在 macOS 上执行，使用当前架构）
-  build:plugin:darwin:
-    desc: 构建 macOS Plugin（需在 macOS 上执行）
-    cmds:
-      - mkdir -p dist/darwin
-      - cd config && CGO_ENABLED=1 GOOS=darwin go build -buildmode=plugin -o ../dist/darwin/config.so ./plugin
-      - echo "macOS Plugin 已构建 dist/darwin/config.so（架构：$(go env GOARCH)）"
+      - cd config && GOOS=wasip1 GOARCH=wasm go build -o ../dist/config.wasm ./plugin-wasm
+      - echo "WASM 已构建 dist/config.wasm"
 
   example:run:
     desc: 运行示例（支持 json 或 yaml）
     cmds:
       - test -n "{{.EXAMPLE}}" || (echo "请设置 EXAMPLE 变量，例如：task example:run EXAMPLE=yaml" && exit 1)
       - test "{{.EXAMPLE}}" = "yaml" -o "{{.EXAMPLE}}" = "json" || (echo "仅支持 EXAMPLE=yaml 或 EXAMPLE=json" && exit 1)
-      - task: build:plugin
+      - task: build:wasm
       - cd config/examples/{{.EXAMPLE}} && go run main.go
 
-  # 清理 Plugin 构建产物
-  clean:plugin:
-    desc: 清理 Plugin 构建产物
+  # 清理 WASM 构建产物
+  clean:wasm:
+    desc: 清理 WASM 构建产物
     cmds:
       - rm -rf dist/
-      - echo "Plugin 构建产物已清理"
+      - echo "WASM 构建产物已清理"

@@ -6,6 +6,7 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/hashicorp/consul/api v1.33.2
 	github.com/lib/pq v1.10.9
+	github.com/tetratelabs/wazero v1.7.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
