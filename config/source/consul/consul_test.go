@@ -2,12 +2,21 @@ package consul
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"testing"
 	"time"
+
+	consulapi "github.com/hashicorp/consul/api"
 )
 
 // TestNew 测试创建 Consul 配置源
 func TestNew(t *testing.T) {
+	addr, err := consulAvailableAddress()
+	if err != nil {
+		addr = ""
+	}
+
 	tests := []struct {
 		name    string
 		address string
@@ -21,13 +30,13 @@ func TestNew(t *testing.T) {
 		},
 		{
 			name:    "with prefix option",
-			address: "localhost:8500",
+			address: addr,
 			opts:    []Option{WithPrefix("config/test")},
 			wantErr: false,
 		},
 		{
 			name:    "with priority option",
-			address: "localhost:8500",
+			address: addr,
 			opts:    []Option{WithPriority(90)},
 			wantErr: false,
 		},
@@ -35,6 +44,10 @@ func TestNew(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if !tt.wantErr && tt.address == "" {
+				t.Skip("Consul not available")
+				return
+			}
 			_, err := New(tt.address, tt.opts...)
 			if err != nil && !tt.wantErr {
 				t.Skipf("Consul not available: %v", err)
@@ -95,10 +108,30 @@ func TestSource_Load(t *testing.T) {
 		t.Skip("skipping integration test")
 	}
 
-	// 创建配置源
-	source, err := New("localhost:8500", WithPrefix("config/test"))
+	client, addr, err := consulClient()
 	if err != nil {
 		t.Skipf("Consul not available: %v", err)
+	}
+
+	prefix := fmt.Sprintf("config/test-%d", time.Now().UnixNano())
+
+	kv := client.KV()
+	_, err = kv.Put(&consulapi.KVPair{Key: prefix + "/database/host", Value: []byte("localhost")}, nil)
+	if err != nil {
+		t.Fatalf("failed to write consul data: %v", err)
+	}
+	_, err = kv.Put(&consulapi.KVPair{Key: prefix + "/server/port", Value: []byte("8080")}, nil)
+	if err != nil {
+		t.Fatalf("failed to write consul data: %v", err)
+	}
+	defer func() {
+		_, _ = kv.DeleteTree(prefix, nil)
+	}()
+
+	// 创建配置源
+	source, err := New(addr, WithPrefix(prefix))
+	if err != nil {
+		t.Fatalf("New() error = %v", err)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -110,10 +143,60 @@ func TestSource_Load(t *testing.T) {
 		t.Fatalf("Load() error = %v", err)
 	}
 
-	// 验证返回的是 map
 	if values == nil {
-		t.Error("Load() returned nil map")
+		t.Fatal("Load() returned nil map")
 	}
+	if values["database.host"].String() != "localhost" {
+		t.Fatalf("database.host = %s, want localhost", values["database.host"].String())
+	}
+	if values["server.port"].Int(0) != 8080 {
+		t.Fatalf("server.port = %d, want 8080", values["server.port"].Int(0))
+	}
+}
+
+func consulAddresses() []string {
+	addr := os.Getenv("CONSUL_ADDR")
+	if addr != "" {
+		return []string{addr}
+	}
+	return []string{"localhost:8500", "host.docker.internal:8500"}
+}
+
+func consulAvailableAddress() (string, error) {
+	for _, addr := range consulAddresses() {
+		client, err := consulClientForAddress(addr)
+		if err == nil {
+			_ = client
+			return addr, nil
+		}
+	}
+	return "", fmt.Errorf("no reachable consul address")
+}
+
+func consulClient() (*consulapi.Client, string, error) {
+	for _, addr := range consulAddresses() {
+		client, err := consulClientForAddress(addr)
+		if err == nil {
+			return client, addr, nil
+		}
+	}
+	return nil, "", fmt.Errorf("no reachable consul address")
+}
+
+func consulClientForAddress(addr string) (*consulapi.Client, error) {
+	cfg := consulapi.DefaultConfig()
+	cfg.Address = addr
+
+	client, err := consulapi.NewClient(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := client.Status().Leader(); err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
 
 // TestSource_Watch 测试 Watch 功能
